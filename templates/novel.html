@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}{{ novel.title }} - Fan Fiction Novel Generator{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">
+                        <i class="fas fa-book"></i> {{ novel.title }}
+                    </h3>
+                    <span class="badge bg-{% if novel.status == 'completed' %}success{% elif novel.status == 'generated' %}warning{% else %}secondary{% endif %} fs-6">
+                        {{ novel.status.title() }}
+                    </span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p><strong><i class="fas fa-file-alt"></i> Total Chapters:</strong> {{ novel.total_chapters }}</p>
+                        <p><strong><i class="fas fa-chart-line"></i> Progress:</strong> {{ novel.progress }}%</p>
+                    </div>
+                    <div class="col-md-6">
+                        {% if novel.created_at %}
+                            <p><strong><i class="fas fa-calendar-plus"></i> Created:</strong> {{ novel.created_at[:10] }}</p>
+                        {% endif %}
+                        {% if novel.last_updated %}
+                            <p><strong><i class="fas fa-clock"></i> Last Updated:</strong> {{ novel.last_updated[:10] }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {% if novel.url and not novel.url.startswith('generated') %}
+                    <p><strong><i class="fas fa-link"></i> Source URL:</strong> 
+                        <a href="{{ novel.url }}" target="_blank" class="text-decoration-none">{{ novel.url[:50] }}...</a>
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5><i class="fas fa-list"></i> Chapters ({{ chapters|length }})</h5>
+            </div>
+            <div class="card-body">
+                {% if chapters %}
+                    <div class="list-group">
+                        {% for chapter in chapters %}
+                            <a href="{{ url_for('view_chapter', chapter_id=chapter.id) }}" 
+                               class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">
+                                        <i class="fas fa-file-alt"></i> 
+                                        {{ chapter.title if chapter.title else 'Chapter ' + loop.index|string }}
+                                    </h6>
+                                    <small class="text-muted">
+                                        {{ "{:,}".format(chapter.content_length) }} characters
+                                    </small>
+                                </div>
+                                {% if chapter.scraped_at %}
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock"></i> {{ chapter.scraped_at[:10] }}
+                                    </small>
+                                {% endif %}
+                            </a>
+                        {% endfor %}
+                    </div>
+                    
+                    {% if chapters|length >= 50 %}
+                        <div class="alert alert-info mt-3">
+                            <i class="fas fa-info-circle"></i> 
+                            Showing first 50 chapters. This novel may have more chapters.
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                        <h5>No chapters available</h5>
+                        <p class="text-muted">This novel doesn't have any readable chapters yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-tools"></i> Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('browse') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Browse
+                    </a>
+                    <a href="{{ url_for('generate_form') }}" class="btn btn-primary">
+                        <i class="fas fa-magic"></i> Generate Similar Novel
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-bar"></i> Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <h4 class="text-primary">{{ novel.total_chapters }}</h4>
+                            <small class="text-muted">Chapters</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-success">{{ novel.progress }}%</h4>
+                        <small class="text-muted">Complete</small>
+                    </div>
+                </div>
+                
+                {% if chapters %}
+                    <hr>
+                    <div class="row text-center">
+                        <div class="col-12">
+                            <h5 class="text-info">{{ "{:,}".format(chapters|sum(attribute='content_length')) }}</h5>
+                            <small class="text-muted">Total Characters (First 50 Chapters)</small>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if novel.status == 'generated' %}
+            <div class="card mt-4 border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0"><i class="fas fa-magic"></i> AI Generated</h6>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">This novel was generated using AI based on existing fan fiction content.</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Fan Fiction Novel Generator{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="jumbotron bg-primary text-white p-5 rounded mb-4">
+            <h1 class="display-4">
+                <i class="fas fa-book-open"></i> Fan Fiction Novel Generator
+            </h1>
+            <p class="lead">Generate new novels based on your extensive fan fiction database!</p>
+            <hr class="my-4">
+            <p>Explore {{ "{:,}".format(novel_count) }} novels and {{ "{:,}".format(chapter_count) }} chapters to create something new.</p>
+            <a class="btn btn-light btn-lg" href="{{ url_for('generate_form') }}" role="button">
+                <i class="fas fa-magic"></i> Start Generating
+            </a>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="fas fa-book fa-3x text-primary mb-3"></i>
+                        <h5 class="card-title">{{ "{:,}".format(novel_count) }}</h5>
+                        <p class="card-text">Total Novels</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="fas fa-file-alt fa-3x text-success mb-3"></i>
+                        <h5 class="card-title">{{ "{:,}".format(chapter_count) }}</h5>
+                        <p class="card-text">Total Chapters</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="fas fa-magic fa-3x text-warning mb-3"></i>
+                        <h5 class="card-title" id="generated-count">Loading...</h5>
+                        <p class="card-text">Generated Novels</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-clock"></i> Recent Novels</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_novels %}
+                    <div class="list-group list-group-flush">
+                        {% for novel in recent_novels %}
+                            <a href="{{ url_for('view_novel', novel_id=novel.id) }}" 
+                               class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ novel.title[:50] }}{% if novel.title|length > 50 %}...{% endif %}</h6>
+                                    <small class="text-muted">{{ novel.total_chapters }} chapters</small>
+                                </div>
+                                <small class="text-muted">
+                                    <i class="fas fa-circle text-{% if novel.status == 'completed' %}success{% elif novel.status == 'generated' %}warning{% else %}secondary{% endif %}"></i>
+                                    {{ novel.status.title() }}
+                                </small>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No novels found.</p>
+                {% endif %}
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('browse') }}" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-search"></i> Browse All Novels
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-info-circle"></i> How It Works</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <i class="fas fa-search fa-2x text-primary mb-3"></i>
+                            <h6>1. Browse & Explore</h6>
+                            <p class="text-muted">Explore the vast collection of fan fiction novels and chapters in the database.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <i class="fas fa-edit fa-2x text-success mb-3"></i>
+                            <h6>2. Provide a Prompt</h6>
+                            <p class="text-muted">Give the AI a creative prompt describing the type of novel you want to generate.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <i class="fas fa-magic fa-2x text-warning mb-3"></i>
+                            <h6>3. Generate & Enjoy</h6>
+                            <p class="text-muted">The AI analyzes existing content and creates a new novel based on your prompt.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Load generated novels count
+fetch('/api/stats')
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('generated-count').textContent = data.novels.toLocaleString();
+    })
+    .catch(error => {
+        document.getElementById('generated-count').textContent = 'N/A';
+    });
+</script>
+{% endblock %}
