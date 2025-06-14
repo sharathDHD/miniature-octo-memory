@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}{{ chapter.title }} - {{ chapter.novel_title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-1">{{ chapter.title if chapter.title else 'Untitled Chapter' }}</h4>
+                        <h6 class="text-muted mb-0">
+                            <a href="{{ url_for('view_novel', novel_id=chapter.novel_id) }}" class="text-decoration-none">
+                                {{ chapter.novel_title }}
+                            </a>
+                        </h6>
+                    </div>
+                    {% if chapter.scraped_at %}
+                        <small class="text-muted">
+                            <i class="fas fa-clock"></i> {{ chapter.scraped_at[:10] }}
+                        </small>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                {% if chapter.content %}
+                    <div class="chapter-content">
+                        {{ chapter.content|replace('\n', '<br>')|safe }}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                        <h5>No content available</h5>
+                        <p class="text-muted">This chapter doesn't have any readable content.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-tools"></i> Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('view_novel', novel_id=chapter.novel_id) }}" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left"></i> Back to Novel
+                    </a>
+                    <a href="{{ url_for('browse') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-search"></i> Browse Novels
+                    </a>
+                    <a href="{{ url_for('generate_form') }}" class="btn btn-primary">
+                        <i class="fas fa-magic"></i> Generate Similar
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5><i class="fas fa-info-circle"></i> Chapter Info</h5>
+            </div>
+            <div class="card-body">
+                {% if chapter.content %}
+                    <p><strong>Length:</strong> {{ "{:,}".format(chapter.content|length) }} characters</p>
+                    <p><strong>Word Count:</strong> ~{{ "{:,}".format((chapter.content.split()|length)) }} words</p>
+                {% endif %}
+                
+                {% if chapter.url and not chapter.url.startswith('generated') %}
+                    <p><strong>Source:</strong> 
+                        <a href="{{ chapter.url }}" target="_blank" class="text-decoration-none">
+                            Original <i class="fas fa-external-link-alt"></i>
+                        </a>
+                    </p>
+                {% endif %}
+                
+                {% if chapter.status %}
+                    <p><strong>Status:</strong> 
+                        <span class="badge bg-{% if chapter.status == 'completed' %}success{% elif chapter.status == 'generated' %}warning{% else %}secondary{% endif %}">
+                            {{ chapter.status.title() }}
+                        </span>
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if chapter.status == 'generated' %}
+            <div class="card mt-4 border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0"><i class="fas fa-magic"></i> AI Generated</h6>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">This chapter was generated using AI based on existing fan fiction content.</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+.chapter-content {
+    line-height: 1.8;
+    font-size: 1.1rem;
+    text-align: justify;
+}
+
+.chapter-content p {
+    margin-bottom: 1.5rem;
+}
+</style>
+{% endblock %}
